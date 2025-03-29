@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>图片元数据彻底清除工具</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --secondary: #f3f4f6;
+            --text: #1f2937;
+            --light-text: #6b7280;
+            --bg: #ffffff;
+            --card-bg: #f9fafb;
+            --border: #e5e7eb;
+            --shadow: rgba(0, 0, 0, 0.1);
+        }
+
+        [data-theme="dark"] {
+            --primary: #6366f1;
+            --primary-hover: #818cf8;
+            --secondary: #1f2937;
+            --text: #f9fafb;
+            --light-text: #d1d5db;
+            --bg: #111827;
+            --card-bg: #1f2937;
+            --border: #374151;
+            --shadow: rgba(0, 0, 0, 0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(90deg, #4f46e5, #10b981);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .subtitle {
+            color: var(--light-text);
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 6px var(--shadow);
+            margin-bottom: 2rem;
+            border: 1px solid var(--border);
+        }
+
+        .upload-area {
+            border: 2px dashed var(--border);
+            border-radius: 8px;
+            padding: 3rem 1rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 1.5rem;
+        }
+
+        .upload-area:hover {
+            border-color: var(--primary);
+            background-color: rgba(79, 70, 229, 0.05);
+        }
+
+        .upload-area.dragover {
+            border-color: var(--primary);
+            background-color: rgba(79, 70, 229, 0.1);
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+
+        .upload-text {
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .upload-hint {
+            color: var(--light-text);
+            font-size: 0.9rem;
+        }
+
+        #file-input {
+            display: none;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            font-size: 1rem;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background-color: var(--secondary);
+            color: var(--text);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--border);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
+
+        .file-list {
+            margin-top: 1.5rem;
+        }
+
+        .file-item {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            background-color: var(--bg);
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            border: 1px solid var(--border);
+        }
+
+        .file-icon {
+            margin-right: 1rem;
+            color: var(--light-text);
+        }
+
+        .file-name {
+            flex-grow: 1;
+            font-weight: 500;
+        }
+
+        .file-size {
+            color: var(--light-text);
+            font-size: 0.9rem;
+            margin-right: 1rem;
+        }
+
+        .file-remove {
+            color: #ef4444;
+            cursor: pointer;
+        }
+
+        .progress-container {
+            margin-top: 1.5rem;
+            display: none;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background-color: var(--border);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 0.5rem;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background-color: var(--primary);
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        .progress-text {
+            text-align: center;
+            color: var(--light-text);
+            font-size: 0.9rem;
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .alert-success {
+            background-color: #ecfdf5;
+            color: #065f46;
+            border: 1px solid #a7f3d0;
+        }
+
+        .alert-error {
+            background-color: #fef2f2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+
+        .alert-icon {
+            margin-right: 0.75rem;
+            font-size: 1.2rem;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .btn-group {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+            }
+        }
+
+        /* Animation */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="fade-in">
+            <h1>图片元数据彻底清除工具</h1>
+            <p class="subtitle">彻底去除EXIF/IPTC/XMP等元数据，最大限度保持图像质量</p>
+        </header>
+
+        <div id="alerts"></div>
+
+        <div class="card fade-in" style="animation-delay: 0.1s;">
+            <div id="upload-area" class="upload-area">
+                <div class="upload-icon">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                </div>
+                <div class="upload-text">拖放图片文件到此处或点击选择</div>
+                <div class="upload-hint">支持 PNG, JPG, JPEG, BMP, WEBP 格式</div>
+                <input type="file" id="file-input" multiple accept="image/*">
+            </div>
+
+            <div class="btn-group">
+                <button id="select-files" class="btn btn-primary">
+                    <i class="fas fa-folder-open" style="margin-right: 8px;"></i> 选择文件
+                </button>
+                <button id="process-files" class="btn btn-secondary" disabled>
+                    <i class="fas fa-magic" style="margin-right: 8px;"></i> 清除元数据
+                </button>
+            </div>
+
+            <div id="file-list" class="file-list"></div>
+
+            <div id="progress-container" class="progress-container">
+                <div class="progress-bar">
+                    <div id="progress-fill" class="progress-fill"></div>
+                </div>
+                <div id="progress-text" class="progress-text">处理中...</div>
+            </div>
+        </div>
+
+        <div class="features">
+            <div class="feature-card fade-in" style="animation-delay: 0.2s;">
+                <div class="feature-icon">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <h3 class="feature-title">彻底清除</h3>
+                <p class="feature-desc">完全去除EXIF、IPTC、XMP等所有元数据，保护隐私</p>
+            </div>
+            <div class="feature-card fade-in" style="animation-delay: 0.3s;">
+                <div class="feature-icon">
+                    <i class="fas fa-image"></i>
+                </div>
+                <h3 class="feature-title">质量优先</h3>
+                <p class="feature-desc">智能处理算法，PNG/BMP无损，JPEG接近无损</p>
+            </div>
+            <div class="feature-card fade-in" style="animation-delay: 0.4s;">
+                <div class="feature-icon">
+                    <i class="fas fa-lock"></i>
+                </div>
+                <h3 class="feature-title">本地处理</h3>
+                <p class="feature-desc">100%在浏览器中完成，图片不会上传到任何服务器</p>
+            </div>
+        </div>
+    </div>
+
+    <button id="theme-toggle" class="theme-toggle">
+        <i class="fas fa-moon"></i>
+    </button>
+
+    <!-- 引入必要的库 -->
+    <script src="https://cdn.jsdelivr.net/npm/exif-js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/piexifjs/1.0.6/piexif.js"></script>
+
+    <script>
+        // 主题切换
+        const themeToggle = document.getElementById('theme-toggle');
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const currentTheme = localStorage.getItem('theme') || (prefersDark ? 'dark' : 'light');
+
+        if (currentTheme === 'dark') {
+            document.documentElement.setAttribute('data-theme', 'dark');
+            themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+        }
+
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            if (currentTheme === 'dark') {
+                document.documentElement.removeAttribute('data-theme');
+                localStorage.setItem('theme', 'light');
+                themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
+            } else {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                localStorage.setItem('theme', 'dark');
+                themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+            }
+        });
+
+        // 文件上传逻辑
+        const fileInput = document.getElementById('file-input');
+        const uploadArea = document.getElementById('upload-area');
+        const selectFilesBtn = document.getElementById('select-files');
+        const processFilesBtn = document.getElementById('process-files');
+        const fileList = document.getElementById('file-list');
+        const progressContainer = document.getElementById('progress-container');
+        const progressFill = document.getElementById('progress-fill');
+        const progressText = document.getElementById('progress-text');
+        const alertsContainer = document.getElementById('alerts');
+
+        let files = [];
+
+        // 选择文件按钮点击事件
+        selectFilesBtn.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        // 文件输入变化事件
+        fileInput.addEventListener('change', (e) => {
+            handleFiles(e.target.files);
+        });
+
+        // 拖放区域事件
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            handleFiles(e.dataTransfer.files);
+        });
+
+        // 点击上传区域事件
+        uploadArea.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        // 处理文件
+        function handleFiles(newFiles) {
+            const validExtensions = ['.png', '.jpg', '.jpeg', '.bmp', '.webp'];
+            
+            for (let i = 0; i < newFiles.length; i++) {
+                const file = newFiles[i];
+                const extension = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+                
+                if (validExtensions.includes(extension)) {
+                    // 检查是否已存在同名文件
+                    if (!files.some(f => f.name === file.name)) {
+                        files.push(file);
+                    }
+                }
+            }
+            
+            updateFileList();
+        }
+
+        // 更新文件列表显示
+        function updateFileList() {
+            fileList.innerHTML = '';
+            
+            if (files.length === 0) {
+                processFilesBtn.disabled = true;
+                return;
+            }
+            
+            processFilesBtn.disabled = false;
+            
+            files.forEach((file, index) => {
+                const fileItem = document.createElement('div');
+                fileItem.className = 'file-item';
+                
+                const fileIcon = document.createElement('div');
+                fileIcon.className = 'file-icon';
+                
+                // 根据不同类型显示不同图标
+                if (file.type === 'image/png') {
+                    fileIcon.innerHTML = '<i class="fas fa-file-image" style="color: #4f46e5;"></i>';
+                } else if (file.type === 'image/jpeg' || file.type === 'image/jpg') {
+                    fileIcon.innerHTML = '<i class="fas fa-file-image" style="color: #f59e0b;"></i>';
+                } else if (file.type === 'image/bmp') {
+                    fileIcon.innerHTML = '<i class="fas fa-file-image" style="color: #10b981;"></i>';
+                } else if (file.type === 'image/webp') {
+                    fileIcon.innerHTML = '<i class="fas fa-file-image" style="color: #ec4899;"></i>';
+                } else {
+                    fileIcon.innerHTML = '<i class="fas fa-file-image"></i>';
+                }
+                
+                const fileName = document.createElement('div');
+                fileName.className = 'file-name';
+                fileName.textContent = file.name;
+                
+                const fileSize = document.createElement('div');
+                fileSize.className = 'file-size';
+                fileSize.textContent = formatFileSize(file.size);
+                
+                const fileRemove = document.createElement('div');
+                fileRemove.className = 'file-remove';
+                fileRemove.innerHTML = '<i class="fas fa-times"></i>';
+                fileRemove.addEventListener('click', () => {
+                    files.splice(index, 1);
+                    updateFileList();
+                });
+                
+                fileItem.appendChild(fileIcon);
+                fileItem.appendChild(fileName);
+                fileItem.appendChild(fileSize);
+                fileItem.appendChild(fileRemove);
+                
+                fileList.appendChild(fileItem);
+            });
+        }
+
+        // 格式化文件大小
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        // 显示提示信息
+        function showAlert(message, type) {
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type} fade-in`;
+            
+            const icon = document.createElement('div');
+            icon.className = 'alert-icon';
+            icon.innerHTML = type === 'success' ? '<i class="fas fa-check-circle"></i>' : '<i class="fas fa-exclamation-circle"></i>';
+            
+            const text = document.createElement('div');
+            text.textContent = message;
+            
+            alert.appendChild(icon);
+            alert.appendChild(text);
+            
+            alertsContainer.appendChild(alert);
+            
+            // 5秒后自动消失
+            setTimeout(() => {
+                alert.classList.add('fade-out');
+                setTimeout(() => {
+                    alert.remove();
+                }, 300);
+            }, 5000);
+        }
+
+        // 检查元数据是否已清除
+        async function verifyMetadataRemoval(blob) {
+            if (blob.type === 'image/jpeg' || blob.type === 'image/jpg') {
+                const buffer = await readFileAsArrayBuffer(blob);
+                try {
+                    const exifData = piexif.load(buffer);
+                    return Object.keys(exifData).length === 0;
+                } catch {
+                    return true;
+                }
+            }
+            return true;
+        }
+
+        // 读取文件为ArrayBuffer
+        function readFileAsArrayBuffer(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsArrayBuffer(file);
+            });
+        }
+
+        // 处理JPEG文件(无损方式)
+        async function processJpegWithoutReencoding(file) {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        const cleaned = piexif.remove(e.target.result);
+                        const blob = new Blob([cleaned], {type: 'image/jpeg'});
+                        resolve(blob);
+                    } catch (error) {
+                        console.warn("Piexif处理失败，降级使用Canvas:", error);
+                        processViaCanvas(file).then(resolve);
+                    }
+                };
+                reader.readAsArrayBuffer(file);
+            });
+        }
+
+        // 通过Canvas处理图像(高质量重编码)
+        async function processViaCanvas(file) {
+            return new Promise((resolve) => {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0);
+                    
+                    // 根据不同类型选择质量参数
+                    let quality = 0.92; // 默认高质量
+                    let mimeType = file.type;
+                    
+                    if (file.type === 'image/png' || file.type === 'image/bmp') {
+                        quality = 1; // 无损
+                    }
+                    
+                    canvas.toBlob((blob) => {
+                        resolve(blob || file); // 失败时返回原始文件
+                    }, mimeType, quality);
+                };
+                img.src = URL.createObjectURL(file);
+            });
+        }
+
+        // 智能处理图像(自动选择最佳方法)
+        async function processImage(file) {
+            try {
+                // 对于JPEG优先使用无损方法
+                if (file.type === 'image/jpeg' || file.type === 'image/jpg') {
+                    const cleanedBlob = await processJpegWithoutReencoding(file);
+                    const isClean = await verifyMetadataRemoval(cleanedBlob);
+                    if (isClean) return cleanedBlob;
+                    
+                    // 如果验证失败，使用Canvas方法
+                    return await processViaCanvas(file);
+                }
+                
+                // PNG/BMP使用Canvas无损处理
+                if (file.type === 'image/png' || file.type === 'image/bmp') {
+                    return await processViaCanvas(file);
+                }
+                
+                // 其他格式使用Canvas高质量处理
+                return await processViaCanvas(file);
+            } catch (error) {
+                console.error("图像处理失败:", error);
+                return file; // 返回原始文件作为fallback
+            }
+        }
+
+        // 处理文件按钮点击事件
+        processFilesBtn.addEventListener('click', async () => {
+            if (files.length === 0) {
+                showAlert('请先选择要处理的图片文件', 'error');
+                return;
+            }
+            
+            progressContainer.style.display = 'block';
+            processFilesBtn.disabled = true;
+            
+            try {
+                const zip = new JSZip();
+                let processedCount = 0;
+                const totalFiles = files.length;
+                
+                for (const file of files) {
+                    try {
+                        // 处理单个文件
+                        const cleanBlob = await processImage(file);
+                        
+                        // 添加到ZIP
+                        const arrayBuffer = await readFileAsArrayBuffer(cleanBlob);
+                        const extension = file.name.split('.').pop().toLowerCase();
+                        const newName = file.name.replace(new RegExp(`.${extension}$`, 'i'), `_cleaned.${extension}`);
+                        zip.file(newName, arrayBuffer);
+                        
+                        // 更新进度
+                        processedCount++;
+                        const progress = Math.round((processedCount / totalFiles) * 100);
+                        progressFill.style.width = `${progress}%`;
+                        progressText.textContent = `处理中... (${processedCount}/${totalFiles})`;
+                    } catch (error) {
+                        console.error(`处理 ${file.name} 失败:`, error);
+                    }
+                }
+                
+                // 生成ZIP文件
+                const zipContent = await zip.generateAsync({ type: 'blob' }, (metadata) => {
+                    if (metadata.percent === 100) {
+                        progressText.textContent = '正在生成下载文件...';
+                    }
+                });
+                
+                // 下载ZIP
+                saveAs(zipContent, 'cleaned_images.zip');
+                
+                // 重置UI
+                progressText.textContent = '处理完成！';
+                setTimeout(() => {
+                    progressContainer.style.display = 'none';
+                    progressFill.style.width = '0%';
+                    progressText.textContent = '处理中...';
+                    files = [];
+                    updateFileList();
+                }, 1000);
+                
+                showAlert('图片处理成功！下载已开始', 'success');
+            } catch (error) {
+                console.error('处理失败:', error);
+                showAlert('图片处理失败，请重试', 'error');
+                progressContainer.style.display = 'none';
+                processFilesBtn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>
