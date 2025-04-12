@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,6 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="styles.css">
 </head>
+
 <body>
     <div class="container">
         <header class="fade-in">
@@ -23,7 +25,7 @@
                 </div>
                 <div class="upload-text">拖放图片文件到此处或点击选择</div>
                 <div class="upload-hint">支持 PNG, JPG, JPEG, BMP, WEBP 格式</div>
-                <input type="file" id="file-input" multiple accept="image/*">
+                <input type="file" id="file-input" multiple accept="image/png, image/jpeg, image/bmp, image/webp">
             </div>
 
             <div class="btn-group">
@@ -35,7 +37,8 @@
                 </button>
             </div>
 
-            <div class="download-option" style="margin-top: 1rem; display: flex; align-items: center; justify-content: center;">
+            <div class="download-option"
+                style="margin-top: 1rem; display: flex; align-items: center; justify-content: center;">
                 <label class="switch" style="margin-right: 10px;">
                     <input type="checkbox" id="zip-download-toggle">
                     <span class="slider round"></span>
@@ -51,6 +54,11 @@
                 </div>
                 <div id="progress-text" class="progress-text">处理中...</div>
             </div>
+        </div>
+
+        <!-- Add container for the report -->
+        <div id="report-container" class="report-container" style="display: none;">
+            <!-- Report content will be generated here by script.js -->
         </div>
 
         <div class="features">
@@ -80,11 +88,13 @@
 
     <button id="theme-toggle" class="theme-toggle">
         <i class="fas fa-moon"></i>
-    </button>    <!-- 引入必要的库 -->
+    </button> <!-- 引入必要的库 -->
     <script src="https://cdn.jsdelivr.net/npm/exif-js"></script>
+    <!-- Note: exif-js is generally for reading, piexif.js is for modifying/removing -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/piexifjs/1.0.6/piexif.js"></script>
     <script src="script.js"></script>
 </body>
+
 </html>
