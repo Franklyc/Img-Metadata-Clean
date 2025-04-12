@@ -269,6 +269,68 @@
         .fade-in {
             animation: fadeIn 0.5s ease-out forwards;
         }
+        
+        /* 特性区域样式 */
+        .features {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+        
+        .feature-card {
+            flex: 1;
+            min-width: 250px;
+            background-color: var(--card-bg);
+            border-radius: 20px;
+            padding: 1.5rem;
+            text-align: center;
+            border: 1px solid var(--border);
+            box-shadow: 0 4px 12px var(--shadow);
+            transition: transform 0.3s, box-shadow 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px var(--shadow);
+        }
+        
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), #10b981);
+        }
+        
+        .feature-icon {
+            font-size: 2.5rem;
+            color: var(--primary);
+            margin-bottom: 1rem;
+            display: inline-block;
+            background: rgba(79, 70, 229, 0.1);
+            width: 80px;
+            height: 80px;
+            line-height: 80px;
+            border-radius: 50%;
+        }
+        
+        .feature-title {
+            font-size: 1.4rem;
+            margin-bottom: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .feature-desc {
+            color: var(--light-text);
+            font-size: 1rem;
+            line-height: 1.6;
+        }
     </style>
 </head>
 <body>
