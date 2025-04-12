@@ -245,6 +245,58 @@
             margin-right: 0.75rem;
             font-size: 1.2rem;
         }
+        
+        /* 开关按钮样式 */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+        }
+        
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--border);
+            transition: .4s;
+        }
+        
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+        }
+        
+        input:checked + .slider {
+            background-color: var(--primary);
+        }
+        
+        input:checked + .slider:before {
+            transform: translateX(20px);
+        }
+        
+        .slider.round {
+            border-radius: 34px;
+        }
+        
+        .slider.round:before {
+            border-radius: 50%;
+        }
 
         @media (max-width: 768px) {
             h1 {
@@ -359,6 +411,14 @@
                 <button id="process-files" class="btn btn-secondary" disabled>
                     <i class="fas fa-magic" style="margin-right: 8px;"></i> 清除元数据
                 </button>
+            </div>
+
+            <div class="download-option" style="margin-top: 1rem; display: flex; align-items: center; justify-content: center;">
+                <label class="switch" style="margin-right: 10px;">
+                    <input type="checkbox" id="zip-download-toggle">
+                    <span class="slider round"></span>
+                </label>
+                <span>打包为ZIP下载</span>
             </div>
 
             <div id="file-list" class="file-list"></div>
@@ -679,9 +739,7 @@
                 console.error("图像处理失败:", error);
                 return file; // 返回原始文件作为fallback
             }
-        }
-
-        // 处理文件按钮点击事件
+        }        // 处理文件按钮点击事件
         processFilesBtn.addEventListener('click', async () => {
             if (files.length === 0) {
                 showAlert('请先选择要处理的图片文件', 'error');
@@ -692,20 +750,31 @@
             processFilesBtn.disabled = true;
             
             try {
+                const zipDownloadToggle = document.getElementById('zip-download-toggle');
+                const useZip = zipDownloadToggle.checked;
                 const zip = new JSZip();
                 let processedCount = 0;
                 const totalFiles = files.length;
+                const processedFiles = [];
                 
                 for (const file of files) {
                     try {
                         // 处理单个文件
                         const cleanBlob = await processImage(file);
                         
-                        // 添加到ZIP
-                        const arrayBuffer = await readFileAsArrayBuffer(cleanBlob);
                         const extension = file.name.split('.').pop().toLowerCase();
                         const newName = file.name.replace(new RegExp(`.${extension}$`, 'i'), `_cleaned.${extension}`);
-                        zip.file(newName, arrayBuffer);
+                        
+                        // 如果选择了ZIP下载，添加到ZIP，否则存储处理后的文件
+                        if (useZip) {
+                            const arrayBuffer = await readFileAsArrayBuffer(cleanBlob);
+                            zip.file(newName, arrayBuffer);
+                        } else {
+                            processedFiles.push({
+                                blob: cleanBlob,
+                                name: newName
+                            });
+                        }
                         
                         // 更新进度
                         processedCount++;
@@ -717,18 +786,30 @@
                     }
                 }
                 
-                // 生成ZIP文件
-                const zipContent = await zip.generateAsync({ type: 'blob' }, (metadata) => {
-                    if (metadata.percent === 100) {
-                        progressText.textContent = '正在生成下载文件...';
+                if (useZip) {
+                    // 生成ZIP文件
+                    progressText.textContent = '正在生成ZIP文件...';
+                    const zipContent = await zip.generateAsync({ type: 'blob' });
+                    
+                    // 下载ZIP
+                    saveAs(zipContent, 'cleaned_images.zip');
+                    showAlert('图片处理成功！ZIP下载已开始', 'success');
+                } else {
+                    // 分别下载每个文件
+                    progressText.textContent = '正在下载处理后的文件...';
+                    
+                    // 间隔下载文件，避免浏览器同时触发太多下载
+                    for (let i = 0; i < processedFiles.length; i++) {
+                        const file = processedFiles[i];
+                        setTimeout(() => {
+                            saveAs(file.blob, file.name);
+                        }, i * 300); // 每个文件间隔300ms下载
                     }
-                });
-                
-                // 下载ZIP
-                saveAs(zipContent, 'cleaned_images.zip');
+                    
+                    showAlert(`图片处理成功！${processedFiles.length}个文件将分别下载`, 'success');
+                }
                 
                 // 重置UI
-                progressText.textContent = '处理完成！';
                 setTimeout(() => {
                     progressContainer.style.display = 'none';
                     progressFill.style.width = '0%';
@@ -737,7 +818,6 @@
                     updateFileList();
                 }, 1000);
                 
-                showAlert('图片处理成功！下载已开始', 'success');
             } catch (error) {
                 console.error('处理失败:', error);
                 showAlert('图片处理失败，请重试', 'error');
