@@ -35,8 +35,8 @@
 - **兼容性**：所有现代浏览器(Chrome/Firefox/Edge/Safari)
 ## 常见问题
 **Q: 处理后图片质量会下降吗？**  
-   A: PNG/BMP完全无损；JPEG优先使用无损处理，必要时高质量重编码；其他格式使用92%质量重编码，人眼几乎无法察觉差异。
+   - A: PNG/BMP完全无损；JPEG优先使用无损处理，必要时高质量重编码；其他格式使用92%质量重编码，人眼几乎无法察觉差异。
 **Q: 处理后的文件名会变化吗？**  
-   A: 会在原文件名后添加"_cleaned"后缀，如`photo.jpg` → `photo_cleaned.jpg`
+   - A: 会在原文件名后添加"_cleaned"后缀，如`photo.jpg` → `photo_cleaned.jpg`
 ## 开发与贡献
 欢迎提交Issue或Pull Request！
